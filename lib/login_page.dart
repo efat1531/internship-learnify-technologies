@@ -5,14 +5,27 @@ import 'package:flutter_svg/svg.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl_phone_number_input/intl_phone_number_input.dart';
 import 'package:awesome_snackbar_content/awesome_snackbar_content.dart';
+import 'package:libphonenumber_plugin/libphonenumber_plugin.dart';
+import './varify_otp.dart';
 
 class LoginPage extends StatelessWidget {
+  static String routeName = "\\login_with_phone";
   LoginPage({super.key});
 
   final GlobalKey<FormState> formKey = GlobalKey<FormState>();
 
-  String phoneNumber = '';
   PhoneNumber number = PhoneNumber(isoCode: 'BD');
+
+  Future<String> formatNumber(PhoneNumber phone) async {
+    PhoneNumber number = await PhoneNumber.getRegionInfoFromPhoneNumber(
+        phone.phoneNumber.toString());
+    String? formattedNumber = await PhoneNumberUtil.formatAsYouType(
+      number.phoneNumber!,
+      number.isoCode!,
+    );
+     if (formattedNumber == null) return "123456780";
+    return formattedNumber;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -109,10 +122,6 @@ class LoginPage extends StatelessWidget {
                           ),
                         ),
                         ignoreBlank: false,
-
-                        onFieldSubmitted: (value) {
-                          formKey.currentState?.save();
-                        },
                       ),
                       /**
                        * Seperator line between number and country code
@@ -165,6 +174,7 @@ class LoginPage extends StatelessWidget {
                       ScaffoldMessenger.of(context)
                         ..hideCurrentSnackBar()
                         ..showSnackBar(snackBar);
+                      String fnum = await formatNumber(number);
                       /**
                        * Named Route
                        */
@@ -172,7 +182,9 @@ class LoginPage extends StatelessWidget {
                         const Duration(milliseconds: 2000),
                       );
                       // ignore: use_build_context_synchronously
-                      Navigator.of(context).pushReplacementNamed('/');
+                      Navigator.of(context).pushReplacementNamed(
+                          VarifyOTP.routeName,
+                          arguments: fnum);
                     },
                     color: const Color(0xFF163343),
                     shape: RoundedRectangleBorder(
